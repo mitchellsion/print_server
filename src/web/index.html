@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Print Server</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Print Server</h1>
+      <div class="meta">
+        <span id="meta-url"></span>
+        <span id="meta-fingerprint" title="SHA-256 cert fingerprint"></span>
+      </div>
+    </header>
+
+    <div id="trust-banner" class="trust-banner" hidden>
+      <div class="trust-banner-text">
+        <strong>This certificate is not yet trusted by your OS.</strong>
+        Your browser shows a warning because of this. Click below to install it
+        into your OS trust store; you'll see a native prompt.
+      </div>
+      <div class="trust-banner-meta">
+        <span>SHA-256: <code id="trust-sha256"></code></span>
+        <span>SHA-1: <code id="trust-sha1"></code></span>
+      </div>
+      <div class="trust-banner-actions">
+        <button id="trust-install" type="button">Trust certificate</button>
+        <button id="trust-dismiss" type="button" class="secondary">Not now</button>
+        <span id="trust-status" class="status"></span>
+      </div>
+    </div>
+
+    <nav>
+      <button class="tab active" data-tab="devices">Devices</button>
+      <button class="tab" data-tab="config">Config</button>
+      <button class="tab" data-tab="logs">Logs</button>
+    </nav>
+
+    <main>
+      <section id="tab-devices" class="tab-panel active">
+        <div class="toolbar">
+          <button id="refresh-devices">Refresh</button>
+          <span id="devices-status" class="status"></span>
+        </div>
+        <div id="devices-list"></div>
+
+        <details class="test-print" hidden id="test-print-panel">
+          <summary>Test print</summary>
+          <form id="test-print-form">
+            <input type="hidden" name="deviceId" id="test-device-id" />
+            <p>Device: <strong id="test-device-label"></strong></p>
+            <label>
+              Encoding
+              <select name="encoding" id="test-encoding">
+                <option value="utf8">utf8 (text)</option>
+                <option value="base64">base64</option>
+                <option value="hex">hex</option>
+              </select>
+            </label>
+            <label>
+              Payload
+              <textarea
+                name="data"
+                id="test-data"
+                rows="6"
+                placeholder="Hello from the print server!&#10;&#10;&#10;"
+              ></textarea>
+            </label>
+            <div class="row">
+              <button type="submit">Send</button>
+              <button type="button" id="test-sample-esc">Insert ESC/POS hello sample</button>
+            </div>
+            <pre id="test-result" class="result"></pre>
+          </form>
+        </details>
+      </section>
+
+      <section id="tab-config" class="tab-panel">
+        <form id="config-form">
+          <fieldset>
+            <legend>HTTP</legend>
+            <label
+              >Host
+              <input name="http.host" id="cfg-http-host" />
+            </label>
+            <label
+              >Port
+              <input name="http.port" id="cfg-http-port" type="number" min="1" max="65535" />
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>CORS</legend>
+            <label
+              >Allowed origins (one per line, or <code>*</code>)
+              <textarea name="cors.origins" id="cfg-cors-origins" rows="4"></textarea>
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Logging</legend>
+            <label
+              >Level
+              <select name="log.level" id="cfg-log-level">
+                <option value="fatal">fatal</option>
+                <option value="error">error</option>
+                <option value="warn">warn</option>
+                <option value="info">info</option>
+                <option value="debug">debug</option>
+                <option value="trace">trace</option>
+              </select>
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>USB</legend>
+            <label
+              ><input type="checkbox" name="usb.libusbEnabled" id="cfg-usb-libusb" />
+              Enable libusb (direct USB)
+            </label>
+            <label
+              ><input type="checkbox" name="usb.spoolerEnabled" id="cfg-usb-spooler" />
+              Enable OS print spooler
+            </label>
+          </fieldset>
+          <div class="row">
+            <button type="submit">Save</button>
+            <span id="config-status" class="status"></span>
+          </div>
+          <div id="config-restart-banner" class="banner" hidden>
+            Some changes require a restart of the print server.
+          </div>
+        </form>
+      </section>
+
+      <section id="tab-logs" class="tab-panel">
+        <div class="toolbar">
+          <label
+            >Min level
+            <select id="log-min-level">
+              <option value="trace">trace</option>
+              <option value="debug">debug</option>
+              <option value="info" selected>info</option>
+              <option value="warn">warn</option>
+              <option value="error">error</option>
+            </select>
+          </label>
+          <label
+            ><input type="checkbox" id="log-show-events" checked />
+            Show device/job events
+          </label>
+          <button id="log-clear">Clear</button>
+          <span id="log-status" class="status"></span>
+        </div>
+        <pre id="log-output"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

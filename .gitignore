@@ -1,0 +1,55 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+coverage/
+
+# env files
+.env
+.env.local
+.env.*.local
+
+# logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# runtime
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+
+# testing
+coverage/
+.nyc_output/
+
+# prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# turbo / monorepo
+.turbo/
+.cache/
+
+# docker
+docker-data/
+
+# misc
+tmp/
+temp/
