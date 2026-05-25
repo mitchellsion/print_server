@@ -6,7 +6,7 @@ const httpSchema = z.object({
 });
 
 const corsSchema = z.object({
-  origins: z.array(z.string()).default(["https://localhost"]),
+  origins: z.array(z.string()).default(["*"]),
 });
 
 const logSchema = z.object({
@@ -32,7 +32,7 @@ const jobsSchema = z.object({
 });
 
 const HTTP_DEFAULT = { host: "127.0.0.1", port: 8443 };
-const CORS_DEFAULT = { origins: ["https://localhost"] };
+const CORS_DEFAULT = { origins: ["*"] };
 const LOG_DEFAULT = { level: "info" as const };
 const TLS_DEFAULT = {};
 const USB_DEFAULT = { libusbEnabled: true, spoolerEnabled: true, interfaceClassFilter: [7] };
