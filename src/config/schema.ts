@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const httpSchema = z.object({
-  host: z.string().default("127.0.0.1"),
+  host: z.string().default("0.0.0.0"),
   port: z.number().int().min(1).max(65535).default(8443),
 });
 
@@ -18,6 +18,8 @@ const logSchema = z.object({
 const tlsSchema = z.object({
   certPath: z.string().optional(),
   keyPath: z.string().optional(),
+  extraHostnames: z.array(z.string()).default([]),
+  extraIps: z.array(z.string()).default([]),
 });
 
 const usbSchema = z.object({
@@ -31,10 +33,10 @@ const jobsSchema = z.object({
   historySize: z.number().int().min(0).default(100),
 });
 
-const HTTP_DEFAULT = { host: "127.0.0.1", port: 8443 };
+const HTTP_DEFAULT = { host: "0.0.0.0", port: 8443 };
 const CORS_DEFAULT = { origins: ["*"] };
 const LOG_DEFAULT = { level: "info" as const };
-const TLS_DEFAULT = {};
+const TLS_DEFAULT = { extraHostnames: [], extraIps: [] };
 const USB_DEFAULT = { libusbEnabled: true, spoolerEnabled: true, interfaceClassFilter: [7] };
 const JOBS_DEFAULT = { defaultTimeoutMs: 30_000, historySize: 100 };
 

@@ -22,7 +22,7 @@ The server prints the listening URL and the cert SHA-256 fingerprint. Open `http
 
 The server uses a self-signed cert generated on first run, so browsers show a warning. There are three ways to suppress it; all use the same underlying logic.
 
-**1. From the GUI (recommended for end users).** On first visit, the page shows a yellow banner with the cert's SHA-256 / SHA-1 fingerprints and a **Trust certificate** button. Click it — on macOS you get a native admin prompt; on Linux/Windows the install is silent. Restart the browser. Banner disappears.
+**1. From the GUI (recommended for end users).** On first visit, the page shows a yellow banner with the cert's SHA-256 / SHA-1 fingerprints and a **Trust certificate** button. Click it — on macOS you get a native admin prompt; on Linux/Windows the install is silent. Restart the browser. Banner disappears. The same banner has a **Trust on another device** disclosure with download links and per-OS import instructions for phones/tablets/other computers.
 
 **2. From the API.** Useful for installers or scripted deployments:
 
@@ -44,11 +44,29 @@ pnpm trust-cert --yes      # skip the local "Proceed? [y/N]" prompt
 
 The CLI prints both fingerprints and the current trust state first — compare to what `pnpm dev` logs at startup before confirming.
 
+### Reaching the server from another device
+
+The bridge cannot install trust on a device it doesn't run on — those steps are manual. But two things have to be true first:
+
+1. **The server must bind to a reachable address.** Default is `127.0.0.1` (loopback only). Set `http.host` to `0.0.0.0` (Config tab, `PUT /v1/config`, or `PRINT_SERVER_HOST` env) and restart.
+2. **The cert's SAN list must include the address the remote device uses.** On startup, when `http.host` is non-loopback, the cert is regenerated (if needed) to include all non-internal network interface IPs and the system hostname / `*.local`. Extra names can be pinned via `tls.extraHostnames` / `tls.extraIps` in the config file. A `cert.meta.json` sidecar tracks which SANs the existing cert covers so reboots don't churn the cert when the desired set is already covered. **A regeneration invalidates existing trust** — every device (host + remotes) has to re-import the new cert.
+
+To install the cert on a remote device:
+
+- Download from `https://<host>:<port>/v1/cert.pem` (or `/v1/cert.crt` for iOS/Android). The GUI banner exposes both as buttons. Both routes return the same PEM bytes; only the MIME type and filename differ.
+- Import per OS:
+  - **iOS/iPadOS:** AirDrop/email the `.crt`, install the profile in Settings → General → VPN & Device Management, enable in Settings → General → About → Certificate Trust Settings.
+  - **Android:** Settings → Security → Encryption & credentials → Install a certificate → CA certificate, select the `.crt`.
+  - **macOS:** double-click the `.pem`, add to login keychain, then in Keychain Access set the cert's SSL trust to **Always Trust**.
+  - **Windows:** double-click the `.crt` → Install Certificate → Current User → Trusted Root Certification Authorities.
+  - **Linux (Chrome/Chromium):** `certutil -d sql:~/.pki/nssdb -A -t P,, -n print-server -i print-server.pem` (needs `libnss3-tools` / `nss-tools`).
+- Reach the server by a name or IP that appears in the cert's SAN list (`GET /v1/cert` shows it). Hitting it by some other address still fails hostname verification even with the cert trusted.
+
 ### What the trust action actually does
 
 | OS | Where the cert is installed | Elevation prompt |
 |---|---|---|
-| macOS | `/Library/Keychains/System.keychain` via `security add-trusted-cert` | Native admin dialog (via `osascript`) |
+| macOS | `~/Library/Keychains/login.keychain-db` via `security add-trusted-cert -r trustRoot` | None — user keychain |
 | Linux | Chrome/Chromium NSS DB at `~/.pki/nssdb` via `certutil` | None — user-scoped DB. Firefox uses a separate per-profile DB; import manually if needed. Requires `libnss3-tools` / `nss-tools`. |
 | Windows | `Cert:\CurrentUser\Root` via PowerShell `Import-Certificate` | None — current-user scope. |
 
@@ -82,6 +100,11 @@ All routes are HTTPS only.
 | GET  | `/v1/config` | Sanitized config (`__readonly` lists env-overridden keys) |
 | PUT  | `/v1/config` | Validated patch; returns `{ requiresRestart }` |
 | GET  | `/v1/events` | SSE stream of device, job, log, config events |
+| GET  | `/v1/cert` | Cert metadata + SAN list + trust state |
+| POST | `/v1/cert/trust` | Install cert into host OS trust store |
+| DELETE | `/v1/cert/trust` | Remove cert from host OS trust store |
+| GET  | `/v1/cert.pem` | Download cert as PEM (for remote devices) |
+| GET  | `/v1/cert.crt` | Same bytes as `.pem` with `.crt` MIME (iOS/Android) |
 | GET  | `/` | Web GUI |
 
 ### Print example

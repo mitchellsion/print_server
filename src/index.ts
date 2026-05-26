@@ -6,7 +6,7 @@ import { loadConfig } from "./config/loader.js";
 import type { Config } from "./config/schema.js";
 import { EventBus } from "./logging/eventBus.js";
 import { buildLogger } from "./logging/logger.js";
-import { ensureCert } from "./tls/cert.js";
+import { ensureCert, isLoopbackHost } from "./tls/cert.js";
 import { isCertTrusted, sha1OfCert, formatFingerprint } from "./tls/trust.js";
 import { DeviceRegistry } from "./transport/registry.js";
 import { registerDefaultTransports } from "./transport/index.js";
@@ -36,12 +36,31 @@ async function main(): Promise<void> {
 
   const certPath = currentConfig.tls.certPath ?? APP_PATHS.certFile;
   const keyPath = currentConfig.tls.keyPath ?? APP_PATHS.keyFile;
-  const cert = await ensureCert({ certPath, keyPath });
+  const includeLan = !isLoopbackHost(currentConfig.http.host);
+  const cert = await ensureCert({
+    certPath,
+    keyPath,
+    includeLanInterfaces: includeLan,
+    extraHostnames: currentConfig.tls.extraHostnames,
+    extraIps: currentConfig.tls.extraIps,
+  });
   const certSha1 = sha1OfCert(cert.cert);
   logger.info(
-    { fingerprint: cert.fingerprint, certPath, keyPath },
+    {
+      fingerprint: cert.fingerprint,
+      certPath,
+      keyPath,
+      sans: cert.sans,
+      regenerated: cert.regenerated,
+    },
     "TLS cert ready",
   );
+  if (cert.regenerated) {
+    logger.warn(
+      { sans: cert.sans },
+      "TLS cert regenerated with new SANs — existing trust must be re-applied (host + remote devices)",
+    );
+  }
 
   const registry = new DeviceRegistry(bus);
   registerDefaultTransports({ registry, config: currentConfig, logger });
@@ -72,6 +91,7 @@ async function main(): Promise<void> {
     cert,
     certPath,
     certSha1,
+    certSans: cert.sans,
     registry,
     jobs,
     bus,

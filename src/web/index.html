@@ -30,6 +30,67 @@
         <button id="trust-dismiss" type="button" class="secondary">Not now</button>
         <span id="trust-status" class="status"></span>
       </div>
+      <details class="trust-remote">
+        <summary>Trust on another device (phone, tablet, other computer)</summary>
+        <div class="trust-remote-body">
+          <p>
+            The Trust button only installs the cert on the machine running the
+            server. For a non-host device, download the cert and import it
+            manually.
+          </p>
+          <div class="trust-remote-actions">
+            <a id="trust-download-pem" href="/v1/cert.pem" download>Download .pem</a>
+            <a id="trust-download-crt" href="/v1/cert.crt" download>Download .crt (iOS/Android)</a>
+          </div>
+          <p class="trust-remote-sans">
+            Cert is valid for:
+            <code id="trust-sans"></code>
+          </p>
+          <p id="trust-remote-warning" class="trust-remote-warning" hidden>
+            <strong>Heads up:</strong> the server is bound to
+            <code id="trust-bind-host"></code>, so remote devices can't reach
+            it. Set <code>http.host</code> to <code>0.0.0.0</code> in the
+            Config tab, then restart — the cert will regenerate to include
+            your LAN address.
+          </p>
+          <details class="trust-remote-os">
+            <summary>How to import on each OS</summary>
+            <ul>
+              <li>
+                <strong>iOS/iPadOS:</strong> AirDrop or email the
+                <code>.crt</code> to the device, open it, install the profile
+                in Settings → General → VPN & Device Management, then enable
+                it in Settings → General → About → Certificate Trust Settings.
+              </li>
+              <li>
+                <strong>Android:</strong> Settings → Security → Encryption &amp;
+                credentials → Install a certificate → CA certificate, pick the
+                downloaded <code>.crt</code>.
+              </li>
+              <li>
+                <strong>macOS:</strong> double-click the <code>.pem</code>,
+                add to login keychain, then in Keychain Access set the cert's
+                trust for "Secure Sockets Layer" to "Always Trust".
+              </li>
+              <li>
+                <strong>Windows:</strong> double-click the <code>.crt</code> →
+                Install Certificate → Current User → Place all certificates in
+                the following store → Trusted Root Certification Authorities.
+              </li>
+              <li>
+                <strong>Linux (Chrome/Chromium):</strong>
+                <code>certutil -d sql:~/.pki/nssdb -A -t P,, -n print-server -i print-server.pem</code>
+                (requires <code>libnss3-tools</code>).
+              </li>
+            </ul>
+            <p>
+              Reach the server by a name or IP that appears in the SAN list
+              above — otherwise TLS hostname verification will fail even with
+              the cert trusted.
+            </p>
+          </details>
+        </div>
+      </details>
     </div>
 
     <nav>

@@ -24,6 +24,7 @@ export interface BuildServerDeps {
   cert: { cert: string; key: string; fingerprint: string };
   certPath: string;
   certSha1: string;
+  certSans: { dns: string[]; ip: string[] };
   registry: DeviceRegistry;
   jobs: JobManager;
   bus: EventBus;
@@ -95,8 +96,10 @@ export async function buildServer(deps: BuildServerDeps): Promise<FastifyInstanc
   await registerEventsRoute(app, { bus: deps.bus });
   await registerCertRoutes(app, {
     certPath: deps.certPath,
+    certPem: deps.cert.cert,
     sha1: deps.certSha1,
     sha256: deps.cert.fingerprint,
+    sans: deps.certSans,
   });
   await registerWebRoutes(app);
 

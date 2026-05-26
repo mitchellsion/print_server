@@ -249,12 +249,36 @@ async function loadHealth() {
 
 const TRUST_DISMISS_KEY = "print-server.trust-dismissed";
 
+function isLoopbackHost(h) {
+  const s = (h || "").trim().toLowerCase();
+  return s === "127.0.0.1" || s === "::1" || s === "localhost";
+}
+
 async function refreshTrustBanner() {
   const banner = $("#trust-banner");
   try {
     const cert = await fetchJson("/v1/cert");
     $("#trust-sha256").textContent = cert.sha256 || "";
     $("#trust-sha1").textContent = (cert.sha1 || "").match(/.{2}/g)?.join(":") ?? cert.sha1;
+
+    const sans = cert.sans || { dns: [], ip: [] };
+    const sansLine = [...sans.dns, ...sans.ip].join(", ");
+    $("#trust-sans").textContent = sansLine || "(none)";
+
+    try {
+      const { config } = await fetchJson("/v1/config");
+      const bindHost = config.http.host;
+      const warn = $("#trust-remote-warning");
+      if (isLoopbackHost(bindHost)) {
+        $("#trust-bind-host").textContent = bindHost;
+        warn.hidden = false;
+      } else {
+        warn.hidden = true;
+      }
+    } catch {
+      // config fetch failure isn't fatal for the banner
+    }
+
     const dismissedFor = sessionStorage.getItem(TRUST_DISMISS_KEY);
     if (cert.trusted || dismissedFor === cert.sha1) {
       banner.hidden = true;

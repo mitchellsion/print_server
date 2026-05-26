@@ -126,6 +126,48 @@ button[type="button"], button.secondary {
   align-items: center;
   flex-wrap: wrap;
 }
+.trust-remote { margin-top: 4px; font-size: 13px; }
+.trust-remote > summary { cursor: pointer; color: var(--muted); }
+.trust-remote-body { padding: 8px 0 0; display: grid; gap: 8px; }
+.trust-remote-body p { margin: 0; }
+.trust-remote-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.trust-remote-actions a {
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.trust-remote-actions a:hover { filter: brightness(1.08); }
+.trust-remote-sans code {
+  font-family: ui-monospace, Menlo, monospace;
+  color: var(--fg);
+  word-break: break-all;
+}
+.trust-remote-warning {
+  padding: 8px 10px;
+  background: rgba(220, 38, 38, 0.10);
+  border: 1px solid var(--err);
+  border-radius: 6px;
+}
+.trust-remote-warning code {
+  font-family: ui-monospace, Menlo, monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.trust-remote-os { margin-top: 4px; }
+.trust-remote-os > summary { cursor: pointer; color: var(--muted); }
+.trust-remote-os ul { margin: 8px 0; padding-left: 20px; display: grid; gap: 6px; }
+.trust-remote-os code {
+  font-family: ui-monospace, Menlo, monospace;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+@media (prefers-color-scheme: dark) {
+  .trust-remote-os code { background: rgba(255, 255, 255, 0.08); }
+}
 #devices-list {
   display: grid;
   gap: 12px;
